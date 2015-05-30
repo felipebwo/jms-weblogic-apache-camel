@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://camel.apache.org/schema/spring
+	http://camel.apache.org/schema/spring/camel-spring.xsd
+	http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-2.5.xsd
+    http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://cxf.apache.org/jaxrs
+	http://cxf.apache.org/schemas/jaxrs.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+	<aop:aspectj-autoproxy />
+
+	<bean id="ProcessorSendJMS"
+		class="poc.camel.processors.ProcessorSendJMS" />
+	
+	<bean id="ProcessorReceiverJMS"
+		class="poc.camel.processors.ProcessorReceiverJMS" />
+	
+	<!--  Configuracao JMS Weblogic -->
+	
+	<bean id="weblogic" class="org.apache.camel.component.jms.JmsComponent">
+		<property name="connectionFactory" ref="weblogicConnectionFactory" />
+		<property name="destinationResolver" ref="webLogicDestinationResolver" />
+	</bean>
+
+	<bean id="weblogicConnectionFactory" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="weblogic_jms_ConnectionFactory" />
+		<property name="jndiTemplate" ref="webLogicJndiTemplate" />
+	</bean>
+
+	<bean id="webLogicJndiTemplate" class="org.springframework.jndi.JndiTemplate">
+		<property name="environment">
+			<props>
+				<prop key="java.naming.factory.initial">weblogic.jndi.WLInitialContextFactory</prop>
+				<prop key="java.naming.factory.initial">weblogic.jndi.WLInitialContextFactory</prop>
+				<!-- <prop key="java.naming.provider.url">${ip}:${port}</prop> -->
+				<prop key="java.naming.provider.url">t3://localhost:7001</prop>
+				<!-- opional ... -->
+				<prop key="java.naming.security.principal">weblogic</prop>
+				<prop key="java.naming.security.credentials">weblogic1</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="webLogicDestinationResolver"
+		class="org.springframework.jms.support.destination.JndiDestinationResolver">
+		<property name="jndiTemplate" ref="webLogicJndiTemplate" />
+	</bean>
+	
+	<!-- Rotes Camel -->
+
+	<camelContext xmlns="http://camel.apache.org/schema/spring" useMDCLogging="true">
+
+		<camel:package>
+			br.com.poc
+		</camel:package>
+
+		<route>
+			<camel:from uri="cxf:bean:jmsWeblogicCamelEndpoint" />
+			<camel:process ref="ProcessorSendJMS" />
+			<camel:log message="Send JMS" />
+			<to uri="weblogic:queue:jms/assync-queue-jndi" />
+			<camel:log message="Nao pode passar aki" />
+		</route>
+
+		<route>
+			<from uri="weblogic:queue:jms/assync-queue-jndi"/>
+			<camel:log message="Receiver JMS" />
+			<camel:process ref="ProcessorReceiverJMS" />
+		</route>
+		
+
+	</camelContext>
+
+	<!-- We still need it for loading the CXFServlet -->
+	<import resource="classpath:camel-cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+</beans>

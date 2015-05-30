@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<weblogic-web-app xmlns="http://xmlns.oracle.com/weblogic/weblogic-web-app" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd      http://xmlns.oracle.com/weblogic/weblogic-web-app http://xmlns.oracle.com/weblogic/weblogic-web-app/1.2/weblogic-web-app.xsd">
+	<context-root>jms-weblogic-camel</context-root>
+	<container-descriptor>
+		<prefer-application-packages>
+			<package-name>com.ctc.wstx.*</package-name>
+			<!-- 
+			   utiliza a ant-2.7.6 da aplicacao, pois a versao 
+			   ant-2.7.6 que vem no weblogic nao pode ser usada pelo 
+			   hibernate-core-3.3.0.SP1.jar. Caso mude a versao do 
+			   hibernate para uma superior, que suporte o antlr 2.7.7,
+			   remover a linha abaio
+			   -->
+			<package-name>antlr.*</package-name> 
+		</prefer-application-packages>
+	</container-descriptor>
+</weblogic-web-app>
