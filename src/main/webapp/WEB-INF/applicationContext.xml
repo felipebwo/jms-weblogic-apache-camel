@@ -27,6 +27,9 @@
 	<bean id="ProcessorReceiverJMS"
 		class="poc.camel.processors.ProcessorReceiverJMS" />
 	
+	<bean id="RetornoProcessor"
+		class="poc.camel.processors.RetornoProcessor" />
+	
 	<!--  Configuracao JMS Weblogic -->
 	
 	<bean id="weblogic" class="org.apache.camel.component.jms.JmsComponent">
@@ -70,12 +73,12 @@
 			<camel:from uri="cxf:bean:jmsWeblogicCamelEndpoint" />
 			<camel:process ref="ProcessorSendJMS" />
 			<camel:log message="Send JMS" />
-			<to uri="weblogic:queue:jms/assync-queue-jndi" />
-			<camel:log message="Nao pode passar aki" />
+			<camel:to uri="weblogic:queue:jms/assync-queue-jndi?disableReplyTo=true" />
+			<camel:process ref="RetornoProcessor" />
 		</route>
 
 		<route>
-			<from uri="weblogic:queue:jms/assync-queue-jndi"/>
+			<camel:from uri="weblogic:queue:jms/assync-queue-jndi?preserveMessageQos=true&amp;concurrentConsumers=5"/>
 			<camel:log message="Receiver JMS" />
 			<camel:process ref="ProcessorReceiverJMS" />
 		</route>

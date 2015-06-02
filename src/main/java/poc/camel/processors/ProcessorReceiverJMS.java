@@ -12,7 +12,9 @@ public class ProcessorReceiverJMS implements Processor {
 		PessoaFisicaTO pessoaFisicaTO = exchange.getIn().getBody(PessoaFisicaTO.class);
 		System.out.println(pessoaFisicaTO.cpf);
 		
-		exchange.getOut().setBody("JMS Weblogic - OK");
+		Thread.sleep(10000);
+		
+		System.out.println("Assyncrono.............");
 
 	}
 
